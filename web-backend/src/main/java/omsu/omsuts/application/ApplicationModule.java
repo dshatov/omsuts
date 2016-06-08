@@ -54,9 +54,4 @@ public class ApplicationModule {
         }
         return freeMarkerEngine;
     }
-
-    @Provides
-    Logger provideLogger() {
-        return LoggerFactory.getLogger(Application.class);
-    }
 }

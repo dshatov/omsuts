@@ -1,6 +1,10 @@
 package omsu.omsuts.application;
 
-import org.slf4j.Logger;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import omsu.omsuts.api.json.models.UserLoginModel;
 import spark.ModelAndView;
 import spark.template.freemarker.FreeMarkerEngine;
 
@@ -9,19 +13,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static spark.Spark.*;
 import static spark.Spark.get;
 
 /**
  * Created by sds on 08.06.16.
  */
+@Slf4j
 public class Application implements Runnable {
     public static final String RESOURCES_DIR = System.getProperty("user.dir") + "/src/main/resources";
     public static final String STATIC_FILES_DIR = "/public";
     public static final String FREEMARKER_TEMPLATES_DIR = "/ftl";
     public static final String FREEMARKER_VERSION = "2.3.24";
 
-    @Inject public Logger log;
     @Inject public FreeMarkerEngine freeMarkerEngine;
 
     public Application() {
@@ -39,8 +44,8 @@ public class Application implements Runnable {
     private void setupSSL() {
         port(8443);
 
-        String keyStoreLocation = RESOURCES_DIR + "/deploy/identity.jks";
-        String keyStorePassword = "qwerty";
+        val keyStoreLocation = RESOURCES_DIR + "/deploy/identity.jks";
+        val keyStorePassword = "qwerty";
         secure(keyStoreLocation, keyStorePassword, null, null);
     }
 
@@ -55,11 +60,25 @@ public class Application implements Runnable {
         get("/hello", (req, res) -> "Hello");
 
         post("/login", (req, res) -> {
-            final String username = req.queryParams("login");
-            final String password = req.queryParams("password");
+            ObjectMapper objectMapper = new ObjectMapper();
 
-            if ("qq".equals(username) && "ww".equals(password)) {
-                return "ok";
+            //TODO: replace serverside json-request generation with clientside
+            final String jsonRequest = objectMapper.writeValueAsString(req.queryMap().toMap());
+            final UserLoginModel userLogin;
+
+            try {
+                userLogin = objectMapper.readValue(jsonRequest, UserLoginModel.class);
+                if (!userLogin.isValid()) {
+                    res.status(HTTP_BAD_REQUEST);
+                    return "";
+                }
+            } catch (JsonParseException e) {
+                res.status(HTTP_BAD_REQUEST);
+                return "";
+            }
+
+            if (userLogin.getLogin().equals("qq") && userLogin.getPassword().equals("ww")) {
+                return "nice";
             }
 
             return "bad";
@@ -75,7 +94,7 @@ public class Application implements Runnable {
         Scanner in = new Scanner(System.in);
         do{
             System.out.println("Command:");
-            String cmd = in.nextLine();
+            val cmd = in.nextLine();
             if ("exit".equals(cmd)) {
                 break;
             }

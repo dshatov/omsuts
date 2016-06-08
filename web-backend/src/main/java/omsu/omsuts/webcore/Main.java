@@ -39,6 +39,7 @@ public class Main {
 
     public static void main(String[] args) {
         new Main()
+                .setupSSL()
                 .setupStaticFiles()
                 .setupRoutes();
     }
@@ -47,6 +48,15 @@ public class Main {
         //staticFiles.location(STATIC_FILES_DIR);
         staticFiles.externalLocation(RESOURCES_DIR + STATIC_FILES_DIR);
 
+        return this;
+    }
+
+    private Main setupSSL() {
+        port(8443);
+
+        String keyStoreLocation = RESOURCES_DIR + "/deploy/identity.jks";
+        String keyStorePassword = "qwerty";
+        secure(keyStoreLocation, keyStorePassword, null, null);
         return this;
     }
 

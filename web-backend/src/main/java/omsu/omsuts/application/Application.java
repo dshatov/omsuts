@@ -45,7 +45,7 @@ public class Application implements Runnable {
     }
 
     private void setupRoutes() {
-        get("/", (request, response) -> {
+        get("/", (req, res) -> {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("message", "Hello World!");
 
@@ -53,6 +53,17 @@ public class Application implements Runnable {
         }, freeMarkerEngine);
 
         get("/hello", (req, res) -> "Hello");
+
+        post("/login", (req, res) -> {
+            final String username = req.queryParams("login");
+            final String password = req.queryParams("password");
+
+            if ("qq".equals(username) && "ww".equals(password)) {
+                return "ok";
+            }
+
+            return "bad";
+        });
     }
 
     @Override

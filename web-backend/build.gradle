@@ -4,12 +4,29 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'application'
 
-mainClassName = "omsu.omsuts.webcore.Main"
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.sf.gapt:apt:1"
+    }
+}
+
+apply plugin: "net.sf.gapt"
+
+mainClassName = "omsu.omsuts.Main"
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.9'
 }
 
 dependencies {
@@ -19,4 +36,11 @@ dependencies {
     compile "org.slf4j:slf4j-simple:1.7.21"
     compile "com.sparkjava:spark-template-freemarker:2.3"
     compile "org.freemarker:freemarker:2.3.24-incubating"
+
+    apt 'com.google.dagger:dagger-compiler:2.2'
+    compile 'com.google.dagger:dagger:2.2'
+}
+
+run{
+    standardInput = System.in
 }

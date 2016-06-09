@@ -69,7 +69,10 @@ public class Application implements Runnable {
         before((req, res) -> {
             Session session = req.session(false);
             if (session != null) {
-                log.info("request from " + session.attribute("user"));
+                log.info("'" + req.pathInfo() + "' request from " + session.attribute("user"));
+            }
+            else {
+                log.info("'" + req.pathInfo() + "' request from unauthorized user");
             }
         });
 
@@ -79,6 +82,7 @@ public class Application implements Runnable {
             res.redirect("/");
             return "";
         });
+        get("/logout", routeHandler::handleLogout);
 
         get("/*", (req, res) -> {
             res.status(404);
@@ -86,7 +90,7 @@ public class Application implements Runnable {
             return "Page not found :(";
         });
 
-        //DEBUG
+        //DEBUG ONLY!
         exception(Exception.class, (exception, request, response) -> {
             StringWriter writer = new StringWriter();
             PrintWriter printWriter = new PrintWriter(writer);

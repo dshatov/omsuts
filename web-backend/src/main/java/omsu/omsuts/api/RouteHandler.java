@@ -107,4 +107,15 @@ public class RouteHandler {
         val attributes = new HashMap<String, Object>();
         return templateEngine.render(new ModelAndView(attributes, "login_failed.html"));
     }
+
+
+
+    public String handleLogout (Request req, Response res) {
+        res.redirect("/");
+        val authorized = req.session(false) != null;
+        if (authorized) {
+            req.session().invalidate();
+        }
+        return "Bye!";
+    }
 }

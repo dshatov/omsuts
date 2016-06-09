@@ -105,8 +105,9 @@ public class Application implements Runnable {
             TableUtils.createTable(dbConnectionSource, User.class);
 
             Dao<User, String> userDAO = DaoManager.createDao(dbConnectionSource, User.class);
-            User user = new User("qq", "ww");
-            userDAO.create(user);
+            userDAO.create(new User("qq", "ww"));
+            userDAO.create(new User("dmitry", "1q2w3e4r"));
+            userDAO.create(new User("user", "hardcoded"));
         } catch (SQLException e) {
             e.printStackTrace();
         }

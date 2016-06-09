@@ -1,6 +1,7 @@
 package omsu.omsuts.application;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -63,18 +64,32 @@ public class Application implements Runnable {
             ObjectMapper objectMapper = new ObjectMapper();
 
             //TODO: replace serverside json-request generation with clientside
-            final String jsonRequest = objectMapper.writeValueAsString(req.queryMap().toMap());
+            final String jsonRequest = objectMapper
+                    .writeValueAsString(req.queryMap().toMap())
+                    .replaceAll("\\[", "")
+                    .replaceAll("]", "");
+
             final UserLoginModel userLogin;
+            log.info("jsonRequest: {}", jsonRequest);
 
             try {
                 userLogin = objectMapper.readValue(jsonRequest, UserLoginModel.class);
+
+                log.info("UserLogin: {}", userLogin);
+
                 if (!userLogin.isValid()) {
                     res.status(HTTP_BAD_REQUEST);
-                    return "";
+                    log.warn("userLogin model isn't valid");
+                    return null;
                 }
             } catch (JsonParseException e) {
                 res.status(HTTP_BAD_REQUEST);
-                return "";
+                log.warn("jsonRequest parse error", e);
+                return null;
+            } catch (JsonMappingException e) {
+                res.status(HTTP_BAD_REQUEST);
+                log.warn("jsonRequest mapping error", e);
+                return null;
             }
 
             if (userLogin.getLogin().equals("qq") && userLogin.getPassword().equals("ww")) {
@@ -91,7 +106,7 @@ public class Application implements Runnable {
         setupStaticFiles();
         setupRoutes();
 
-        Scanner in = new Scanner(System.in);
+        val in = new Scanner(System.in);
         do{
             System.out.println("Command:");
             val cmd = in.nextLine();

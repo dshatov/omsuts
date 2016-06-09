@@ -4,8 +4,7 @@ import dagger.Module;
 import dagger.Provides;
 import freemarker.template.Configuration;
 import freemarker.template.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.val;
 import spark.template.freemarker.FreeMarkerEngine;
 
 import javax.inject.Singleton;
@@ -34,7 +33,7 @@ public class ApplicationModule {
     @Singleton
     public FreeMarkerEngine provideFreeMarkerEngine() {
         if (freeMarkerEngine == null) {
-            Configuration freeMarkerConfiguration = new Configuration(new Version(Application.FREEMARKER_VERSION));
+            val freeMarkerConfiguration = new Configuration(new Version(Application.FREEMARKER_VERSION));
 
             //release directory
             try {

@@ -3,13 +3,22 @@ package omsu.omsuts.application;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.db.models.User;
 import omsu.omsuts.api.json.models.UserLoginModel;
 import spark.ModelAndView;
+import spark.Session;
 import spark.template.freemarker.FreeMarkerEngine;
 
 import javax.inject.Inject;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -28,6 +37,7 @@ public class Application implements Runnable {
     public static final String FREEMARKER_TEMPLATES_DIR = "/ftl";
     public static final String FREEMARKER_VERSION = "2.3.24";
 
+    @Inject public ConnectionSource dbConnectionSource;
     @Inject public FreeMarkerEngine freeMarkerEngine;
 
     public Application() {
@@ -53,7 +63,10 @@ public class Application implements Runnable {
     private void setupRoutes() {
         get("/", (req, res) -> {
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put("message", "Hello World!");
+            final String message = req.session(false) != null
+                    ? "welcome back, " + req.session(false).attribute("user")
+                    : "Hello, anon";
+            attributes.put("message", message);
 
             return new ModelAndView(attributes, "index.html");
         }, freeMarkerEngine);
@@ -92,16 +105,46 @@ public class Application implements Runnable {
                 return null;
             }
 
-            if (userLogin.getLogin().equals("qq") && userLogin.getPassword().equals("ww")) {
-                return "nice";
+            try {
+                Dao<User, String> userDAO = DaoManager.createDao(dbConnectionSource, User.class);
+                User user = userDAO.queryForId(userLogin.getLogin());
+                if (user != null && user.getPassword().equals(userLogin.getPassword())) {
+                    req.session(true).attribute("user", userLogin.getLogin());
+                    return "welcome, " + userLogin.getLogin();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
 
-            return "bad";
+            return "Incorrect login or password";
+        });
+
+        before((req, res) -> {
+            Session session = req.session(false);
+            if (session != null) {
+                log.info(session.attribute("user"));
+            }
         });
     }
 
+    private void setupDB() {
+        try {
+            TableUtils.createTable(dbConnectionSource, User.class);
+
+            Dao<User, String> userDAO = DaoManager.createDao(dbConnectionSource, User.class);
+            User user = new User("qq", "ww");
+            userDAO.create(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
+    @SneakyThrows(SQLException.class)
     public void run() {
+        @SuppressWarnings("unused") @Cleanup val connection = dbConnectionSource;
+
+        setupDB();
         setupSSL();
         setupStaticFiles();
         setupRoutes();

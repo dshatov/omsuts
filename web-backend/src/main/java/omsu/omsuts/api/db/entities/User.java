@@ -1,4 +1,4 @@
-package omsu.omsuts.api.db.models;
+package omsu.omsuts.api.db.entities;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

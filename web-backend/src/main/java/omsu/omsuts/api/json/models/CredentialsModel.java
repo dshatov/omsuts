@@ -7,7 +7,7 @@ import lombok.Data;
  */
 
 @Data
-public class UserLoginModel {
+public class CredentialsModel {
     private String login;
     private String password;
 

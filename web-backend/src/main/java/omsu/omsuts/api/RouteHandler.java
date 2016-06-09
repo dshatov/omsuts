@@ -9,10 +9,13 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.db.entities.User;
 import omsu.omsuts.api.json.models.CredentialsModel;
+import omsu.omsuts.application.Application;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
+import spark.TemplateEngine;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -25,21 +28,30 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
 @Slf4j
 public class RouteHandler {
-    private final ConnectionSource dbConnectionSource;
+    @Inject public ConnectionSource dbConnectionSource;
+    @Inject public TemplateEngine templateEngine;
 
-    public RouteHandler(ConnectionSource connectionSource) {
-        dbConnectionSource = connectionSource;
+    public RouteHandler(Application app) {
+        app.getApplicationComponent()
+                .inject(this);
     }
 
-    public ModelAndView handleRoot (Request req, Response res) {
+
+
+    public String handleRoot (Request req, Response res) {
         val attributes = new HashMap<String, Object>();
-        val message = req.session(false) != null
-                ? "welcome back, " + req.session(false).attribute("user")
-                : "Hello, anon";
-        attributes.put("message", message);
-
-        return new ModelAndView(attributes, "index.html");
+        val authorized = req.session(false) != null;
+        if (authorized) {
+            val username = req.session(false).attribute("user");
+            attributes.put("username", username);
+            return templateEngine.render(new ModelAndView(attributes, "main_authorized.html"));
+        }
+        else {
+            return templateEngine.render(new ModelAndView(attributes, "main_unauthorized.html"));
+        }
     }
+
+
 
     public String handleLogin (Request req, Response res) {
         val objectMapper = new ObjectMapper();
@@ -87,10 +99,12 @@ public class RouteHandler {
 
         if (user != null && user.getPassword().equals(credentialsModel.getPassword())) {
             req.session(true).attribute("user", credentialsModel.getLogin());
+            res.redirect("/");
 
-            return "welcome, " + credentialsModel.getLogin();
+            return "Welcome, " + credentialsModel.getLogin();
         }
 
-        return "Incorrect login or password";
+        val attributes = new HashMap<String, Object>();
+        return templateEngine.render(new ModelAndView(attributes, "login_failed.html"));
     }
 }

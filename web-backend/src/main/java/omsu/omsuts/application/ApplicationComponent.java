@@ -1,6 +1,7 @@
 package omsu.omsuts.application;
 
 import dagger.Component;
+import omsu.omsuts.api.RouteHandler;
 
 import javax.inject.Singleton;
 
@@ -14,5 +15,6 @@ import javax.inject.Singleton;
 })
 public interface ApplicationComponent {
     void inject(Application application);
+    void inject(RouteHandler routeHandler);
 }
 

@@ -7,6 +7,7 @@ import dagger.Provides;
 import freemarker.template.Configuration;
 import freemarker.template.Version;
 import lombok.val;
+import spark.TemplateEngine;
 import spark.template.freemarker.FreeMarkerEngine;
 
 import javax.inject.Singleton;
@@ -19,8 +20,10 @@ import java.sql.SQLException;
  */
 @Module
 public class ApplicationModule {
+    public static final String FREEMARKER_VERSION = "2.3.24";
+
     private Application application;
-    private FreeMarkerEngine freeMarkerEngine;
+    private TemplateEngine templateEngine;
     private ConnectionSource dbConnectionSource;
 
     public ApplicationModule(Application application) {
@@ -48,14 +51,14 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    public FreeMarkerEngine provideFreeMarkerEngine() {
-        if (freeMarkerEngine == null) {
-            val freeMarkerConfiguration = new Configuration(new Version(Application.FREEMARKER_VERSION));
+    public TemplateEngine provideTemplateEngine() {
+        if (templateEngine == null) {
+            val freeMarkerConfiguration = new Configuration(new Version(FREEMARKER_VERSION));
 
             //release directory
             try {
                 freeMarkerConfiguration.setDirectoryForTemplateLoading(
-                        new File(Application.RESOURCES_DIR + Application.FREEMARKER_TEMPLATES_DIR)
+                        new File(Application.RESOURCES_DIR + Application.TEMPLATES_DIR)
                 );
             } catch (IOException e) {
                 e.printStackTrace();
@@ -63,11 +66,11 @@ public class ApplicationModule {
 
             //Debug directory
 //        freeMarkerConfiguration.setTemplateLoader(
-//                new ClassTemplateLoader(Main.class, Application.FREEMARKER_TEMPLATES_DIR)
+//                new ClassTemplateLoader(Main.class, Application.TEMPLATES_DIR)
 //        );
 
-            freeMarkerEngine = new FreeMarkerEngine(freeMarkerConfiguration);
+            templateEngine = new FreeMarkerEngine(freeMarkerConfiguration);
         }
-        return freeMarkerEngine;
+        return templateEngine;
     }
 }

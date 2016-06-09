@@ -5,13 +5,14 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import lombok.Cleanup;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.RouteHandler;
 import omsu.omsuts.api.db.entities.User;
 import spark.Session;
-import spark.template.freemarker.FreeMarkerEngine;
+import spark.TemplateEngine;
 
 import javax.inject.Inject;
 import java.io.PrintWriter;
@@ -29,21 +30,24 @@ import static spark.Spark.get;
 public class Application implements Runnable {
     public static final String RESOURCES_DIR = System.getProperty("user.dir") + "/src/main/resources";
     public static final String STATIC_FILES_DIR = "/public";
-    public static final String FREEMARKER_TEMPLATES_DIR = "/ftl";
-    public static final String FREEMARKER_VERSION = "2.3.24";
+    public static final String TEMPLATES_DIR = "/ftl";
 
     @Inject public ConnectionSource dbConnectionSource;
-    @Inject public FreeMarkerEngine freeMarkerEngine;
+    @Inject public TemplateEngine templateEngine;
 
     private RouteHandler routeHandler;
 
-    public Application() {
-        omsu.omsuts.application.DaggerApplicationComponent.builder()
-                .applicationModule(new ApplicationModule(this))
-                .build()
-                .inject(this);
+    @Getter
+    private ApplicationComponent applicationComponent;
 
-        routeHandler = new RouteHandler(dbConnectionSource);
+    public Application() {
+        applicationComponent = omsu.omsuts.application.DaggerApplicationComponent.builder()
+                .applicationModule(new ApplicationModule(this))
+                .build();
+
+        applicationComponent.inject(this);
+
+        routeHandler = new RouteHandler(this);
     }
 
     private void setupStaticFiles() {
@@ -62,15 +66,24 @@ public class Application implements Runnable {
     }
 
     private void setupRoutes() {
-        get("/", routeHandler::handleRoot, freeMarkerEngine);
-        get("/hello", (req, res) -> "hello");
-        post("/login", routeHandler::handleLogin);
-
         before((req, res) -> {
             Session session = req.session(false);
             if (session != null) {
-                log.info(session.attribute("user"));
+                log.info("request from " + session.attribute("user"));
             }
+        });
+
+        get("/", routeHandler::handleRoot);
+        post("/login", routeHandler::handleLogin);
+        get("/login", (req, res) -> {
+            res.redirect("/");
+            return "";
+        });
+
+        get("/*", (req, res) -> {
+            res.status(404);
+            res.redirect("/404.html");
+            return "Page not found :(";
         });
 
         //DEBUG

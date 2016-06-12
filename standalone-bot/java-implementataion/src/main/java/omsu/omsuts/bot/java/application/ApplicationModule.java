@@ -3,7 +3,7 @@ package omsu.omsuts.bot.java.application;
 import dagger.Module;
 import dagger.Provides;
 import okhttp3.ws.WebSocketListener;
-import omsu.omsuts.bot.java.api.OmsutsWebSocketListener;
+import omsu.omsuts.bot.java.api.OmsutsWebSocketConnection;
 
 import javax.inject.Singleton;
 
@@ -30,7 +30,7 @@ public class ApplicationModule {
     @Singleton
     public WebSocketListener provideWebSocketListener() {
         if(socketListener == null) {
-            socketListener = new OmsutsWebSocketListener();
+            socketListener = new OmsutsWebSocketConnection();
         }
         return socketListener;
     }

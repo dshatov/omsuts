@@ -8,10 +8,10 @@ import lombok.Data;
 
 @Data
 public class CredentialsModel {
-    private String login;
+    private String username;
     private String password;
 
     public boolean isValid() {
-        return login != null && !login.isEmpty() && password != null && !password.isEmpty();
+        return username != null && !username.isEmpty() && password != null && !password.isEmpty();
     }
 }

@@ -90,7 +90,7 @@ public class RouteHandler {
         final User user;
         try {
             Dao<User, String> userDao = DaoManager.createDao(dbConnectionSource, User.class);
-            user = userDao.queryForId(credentialsModel.getLogin());
+            user = userDao.queryForId(credentialsModel.getUsername());
         } catch (SQLException e) {
             e.printStackTrace();
 
@@ -98,10 +98,10 @@ public class RouteHandler {
         }
 
         if (user != null && user.getPassword().equals(credentialsModel.getPassword())) {
-            req.session(true).attribute("user", credentialsModel.getLogin());
+            req.session(true).attribute("user", credentialsModel.getUsername());
             res.redirect("/");
 
-            return "Welcome, " + credentialsModel.getLogin();
+            return "Welcome, " + credentialsModel.getUsername();
         }
 
         val attributes = new HashMap<String, Object>();

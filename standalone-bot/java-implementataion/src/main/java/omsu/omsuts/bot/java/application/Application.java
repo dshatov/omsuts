@@ -31,7 +31,7 @@ public class Application implements Runnable {
     public WebSocketListener socketListener;
 
 
-    
+
     public Application() {
         applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))

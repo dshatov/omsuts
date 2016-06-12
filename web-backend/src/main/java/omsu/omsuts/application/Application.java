@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.BotWebSocket;
 import omsu.omsuts.api.RouteHandler;
 import omsu.omsuts.api.db.entities.User;
 import spark.Session;
@@ -84,12 +85,6 @@ public class Application implements Runnable {
         });
         get("/logout", routeHandler::handleLogout);
 
-        get("/*", (req, res) -> {
-            res.status(404);
-            res.redirect("/404.html");
-            return "Page not found :(";
-        });
-
         //DEBUG ONLY!
         exception(Exception.class, (exception, request, response) -> {
             StringWriter writer = new StringWriter();
@@ -97,6 +92,8 @@ public class Application implements Runnable {
             exception.printStackTrace(printWriter);
             String s = writer.toString();
             response.body(s);
+
+            log.error("Got an exception:", exception);
         });
     }
 
@@ -120,8 +117,11 @@ public class Application implements Runnable {
 
         setupDB();
         setupSSL();
+        webSocket("/connect", BotWebSocket.class);
+        webSocketIdleTimeoutMillis(0);
         setupStaticFiles();
         setupRoutes();
+        init();
 
         val in = new Scanner(System.in);
         do{
@@ -132,6 +132,8 @@ public class Application implements Runnable {
             }
             log.error("Invalid command: '{}'", cmd);
         } while (true);
+
+
 
         stop();
     }

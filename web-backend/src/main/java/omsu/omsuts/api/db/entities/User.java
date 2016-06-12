@@ -18,4 +18,6 @@ public class User {
     private String name;
     @DatabaseField
     private String password;
+    @DatabaseField
+    private int score;
 }

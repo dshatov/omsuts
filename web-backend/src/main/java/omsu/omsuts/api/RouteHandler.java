@@ -18,7 +18,9 @@ import spark.TemplateEngine;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 
@@ -44,6 +46,19 @@ public class RouteHandler {
         if (authorized) {
             val username = req.session(false).attribute("user");
             attributes.put("username", username);
+
+            List<User> users;
+            try {
+                Dao<User, String> userDao = DaoManager.createDao(dbConnectionSource, User.class);
+                users = userDao.queryForAll();
+            } catch (SQLException e) {
+                e.printStackTrace();
+
+                return null;
+            }
+            users.sort((user1, user2) -> user2.getScore() - user1.getScore());
+            attributes.put("users", users);
+
             return templateEngine.render(new ModelAndView(attributes, "main_authorized.html"));
         }
         else {

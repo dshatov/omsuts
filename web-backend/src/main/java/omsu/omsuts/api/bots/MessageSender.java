@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.json.Utils;
 import org.eclipse.jetty.websocket.api.Session;
 
 import java.io.IOException;
@@ -20,12 +21,9 @@ public class MessageSender {
             return;
         }
 
-        val objectMapper = new ObjectMapper();
-        String jsonString;
-        try {
-            jsonString = objectMapper.writeValueAsString(jsonModel);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to create json string", e);
+        val jsonString = Utils.getJsonString(jsonModel);
+        if (jsonString == null) {
+            log.error("Failed to send jsonModel: jsonString building error");
             return;
         }
 
@@ -33,6 +31,7 @@ public class MessageSender {
             session.getRemote().sendString(jsonString);
         } catch (IOException e) {
             e.printStackTrace();
+            log.error("Failed to send jsonModel", e);
         }
     }
 

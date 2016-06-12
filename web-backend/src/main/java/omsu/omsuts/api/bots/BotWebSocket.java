@@ -1,8 +1,6 @@
 package omsu.omsuts.api.bots;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import omsu.omsuts.api.bots.json.models.MessageModel;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -27,10 +25,6 @@ public class BotWebSocket {
     // Store sessions if you want to, for example, broadcast a message to all users
     private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
 
-    private static final Map<Session, String> connectedUsers = new HashMap<>();
-
-    private static final Map<String, Session> authenticatedUserSessions = new HashMap<>();
-
     public BotWebSocket() {
         this.messageHandler = new MessageHandler(this);
     }
@@ -45,6 +39,8 @@ public class BotWebSocket {
     public void closed(Session session, int statusCode, String reason) {
         log.info("websocket closed(); status: {}, reason: '{}'", statusCode, reason);
         sessions.remove(session);
+
+        messageHandler.updateSession(session);
     }
 
     @OnWebSocketMessage

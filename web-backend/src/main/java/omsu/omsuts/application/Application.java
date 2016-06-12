@@ -41,7 +41,7 @@ public class Application implements Runnable {
     private ApplicationComponent applicationComponent;
 
     public Application() {
-        applicationComponent = omsu.omsuts.application.DaggerApplicationComponent.builder()
+        applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))
                 .build();
 

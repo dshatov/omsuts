@@ -94,6 +94,6 @@ public class Application implements Runnable {
         call.enqueue(connection);
 
         // Trigger shutdown of the dispatcher's executor so this process can exit cleanly.
-        //client.dispatcher().executorService().shutdown();
+        client.dispatcher().executorService().shutdown();
     }
 }

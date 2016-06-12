@@ -20,6 +20,8 @@ import static omsu.omsuts.bot.java.api.json.Utils.getJsonString;
 @Slf4j
 public class MessageSender {
     public static final String MESSAGE_TYPE_LOGIN = "login";
+    public static final String MESSAGE_TYPE_LOGIN_STATUS = "loginStatus";
+
     private static void sendJson(WebSocket socket, Object jsonModel) {
         if (socket == null) {
             log.error("Socket is closed");

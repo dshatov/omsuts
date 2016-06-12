@@ -1,14 +1,20 @@
 package omsu.omsuts.bot.java.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.ws.WebSocket;
 import okhttp3.ws.WebSocketListener;
 import okio.Buffer;
+import omsu.omsuts.bot.java.api.json.models.LoginStatusModel;
+import omsu.omsuts.bot.java.api.json.models.MessageModel;
 
 import java.io.IOException;
+
+import static omsu.omsuts.bot.java.api.MessageSender.MESSAGE_TYPE_LOGIN_STATUS;
 
 /**
  * Created by sds on 6/12/16.
@@ -27,7 +33,7 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
             return;
         }
         socket = webSocket;
-        log.info("Connected.");
+        log.info("Socket is opened");
 
         MessageSender.login(socket, "qq", "ww");
     }
@@ -40,7 +46,9 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
 
     @Override
     public void onMessage(ResponseBody message) throws IOException {
-        log.info("new message: got '{}'", message.string());
+        val msg = message.string();
+        log.info("new message: got '{}'", msg);
+        handle(msg);
     }
 
     @Override
@@ -51,6 +59,46 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
     public void onClose(int code, String reason) {
         socket = null;
         log.info("connection closed; code: {}, reason: '{}'", code, reason);
+    }
+
+    private void handle(String message) {
+        final MessageModel messageModel;
+        val objectMapper = new ObjectMapper();
+        try {
+            messageModel = objectMapper.readValue(message, MessageModel.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (messageModel.getBody() == null || messageModel.getBody().length() == 0) {
+            log.error("Can't handle empty message");
+            return;
+        }
+
+        if (MESSAGE_TYPE_LOGIN_STATUS.equals(messageModel.getMessageType())) {
+            LoginStatusModel loginStatusModel;
+            try {
+                loginStatusModel = objectMapper.readValue(messageModel.getBody(),
+                        LoginStatusModel.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            handleLoginStatus(loginStatusModel);
+        }
+        else {
+            log.error("Can't handle message with unknown type");
+        }
+    }
+
+    private void handleLoginStatus(LoginStatusModel loginStatusModel) {
+        if (loginStatusModel.isSuccess()) {
+            System.out.println("Connected!");
+        }
+        else {
+            System.out.println("Connection error: " + loginStatusModel.getReason());
+        }
     }
 
     public boolean isConnected() {

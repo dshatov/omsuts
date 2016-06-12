@@ -41,6 +41,7 @@ public class MessageHandler {
     }
 
     public static final String MESSAGE_TYPE_LOGIN = "login";
+    public static final String MESSAGE_TYPE_LOGIN_STATUS = "loginStatus";
 
     public void updateSession(Session session) {
         if(!session.isOpen()) {
@@ -92,30 +93,28 @@ public class MessageHandler {
                 loginRequestModel.getPassword());
 
         if(connectedBotsToUsernames.containsKey(session)) {
-            //bot already authorized
-
+            MessageSender.sendloginStatus(session, false, "bot already authorized");
             return;
         }
 
         if(connectedUsernamesToBots.containsKey(loginRequestModel.getUsername())) {
-            //user already attach other bot
-
-            session.close(4007, "user already attach other bot");
+            MessageSender.sendloginStatus(session, false, "user already attach other bot");
+            //session.close(4007, "user already attach other bot");
             return;
         }
 
         Dao<User, String> userDao = DaoManager.createDao(dbConnectionSource, User.class);
         val user = userDao.queryForId(loginRequestModel.getUsername());
         if (user == null || !user.getPassword().equals(loginRequestModel.getPassword())) {
-            //password is incorrect
-
-            session.close(4008, "password is incorrect");
+            MessageSender.sendloginStatus(session, false, "password is incorrect");
+            //session.close(4008, "password is incorrect");
             return;
         }
 
         connectedUsernamesToBots.put(loginRequestModel.getUsername(), session);
         connectedBotsToUsernames.put(session, loginRequestModel.getUsername());
         log.info("Bot successfully connected; username: '{}'", loginRequestModel.getUsername());
+        MessageSender.sendloginStatus(session, true, "");
     }
 
 }

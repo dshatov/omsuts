@@ -4,10 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.bots.json.models.LoginRequestModel;
+import omsu.omsuts.api.bots.json.models.LoginStatusModel;
+import omsu.omsuts.api.bots.json.models.MessageModel;
 import omsu.omsuts.api.json.Utils;
 import org.eclipse.jetty.websocket.api.Session;
 
 import java.io.IOException;
+
+import static omsu.omsuts.api.bots.MessageHandler.MESSAGE_TYPE_LOGIN;
+import static omsu.omsuts.api.bots.MessageHandler.MESSAGE_TYPE_LOGIN_STATUS;
+import static omsu.omsuts.api.json.Utils.getJsonString;
 
 /**
  * Created by sds on 6/12/16.
@@ -21,7 +28,7 @@ public class MessageSender {
             return;
         }
 
-        val jsonString = Utils.getJsonString(jsonModel);
+        val jsonString = getJsonString(jsonModel);
         if (jsonString == null) {
             log.error("Failed to send jsonModel: jsonString building error");
             return;
@@ -36,8 +43,10 @@ public class MessageSender {
     }
 
 
-        public static void loginStatus(Session session, String username, String password) {
-        //log.info("Send login status...");
-        //sendJson(session, new Logsdfs(ACTION_LOGIN, username, password));
+    public static void sendloginStatus(Session session, boolean success, String reason) {
+        log.info("Send login status...");
+        val loginStatusModel = new LoginStatusModel(success, reason);
+        sendJson(session, new MessageModel(MESSAGE_TYPE_LOGIN_STATUS,
+                getJsonString(loginStatusModel)));
     }
 }

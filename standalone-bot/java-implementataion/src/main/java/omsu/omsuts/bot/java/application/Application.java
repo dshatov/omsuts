@@ -2,10 +2,10 @@ package omsu.omsuts.bot.java.application;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import okhttp3.*;
 import okhttp3.ws.WebSocketCall;
 import okhttp3.ws.WebSocketListener;
+import omsu.omsuts.bot.java.api.OmsutsWebSocketConnection;
 
 import javax.inject.Inject;
 import javax.net.ssl.HttpsURLConnection;
@@ -14,7 +14,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,7 +27,7 @@ public class Application implements Runnable {
     private ApplicationComponent applicationComponent;
 
     @Inject
-    public WebSocketListener socketListener;
+    public OmsutsWebSocketConnection connection;
 
 
 
@@ -92,7 +91,7 @@ public class Application implements Runnable {
                 .url(SERVER_ENDPOINT)
                 .build();
         WebSocketCall call = WebSocketCall.create(client, request);
-        call.enqueue(socketListener);
+        call.enqueue(connection);
 
         // Trigger shutdown of the dispatcher's executor so this process can exit cleanly.
         client.dispatcher().executorService().shutdown();

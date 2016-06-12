@@ -14,7 +14,7 @@ import javax.inject.Singleton;
 public class ApplicationModule {
 
     private Application application;
-    private WebSocketListener socketListener;
+    private OmsutsWebSocketConnection connection;
 
     public ApplicationModule(Application application) {
         this.application = application;
@@ -28,11 +28,11 @@ public class ApplicationModule {
 
     @Provides
     @Singleton
-    public WebSocketListener provideWebSocketListener() {
-        if(socketListener == null) {
-            socketListener = new OmsutsWebSocketConnection();
+    public OmsutsWebSocketConnection provideConnection() {
+        if(connection == null) {
+            connection = new OmsutsWebSocketConnection();
         }
-        return socketListener;
+        return connection;
     }
 
 }

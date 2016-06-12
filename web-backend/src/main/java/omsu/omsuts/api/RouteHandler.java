@@ -54,7 +54,7 @@ public class RouteHandler {
             } catch (SQLException e) {
                 e.printStackTrace();
 
-                return null;
+                users = new ArrayList<>();
             }
             users.sort((user1, user2) -> user2.getScore() - user1.getScore());
             attributes.put("users", users);

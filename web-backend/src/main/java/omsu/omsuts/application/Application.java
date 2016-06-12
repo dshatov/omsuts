@@ -9,8 +9,9 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import omsu.omsuts.api.BotWebSocket;
+import omsu.omsuts.api.bots.BotWebSocket;
 import omsu.omsuts.api.RouteHandler;
+import omsu.omsuts.api.bots.MessageHandler;
 import omsu.omsuts.api.db.entities.User;
 import spark.Session;
 import spark.TemplateEngine;
@@ -41,7 +42,19 @@ public class Application implements Runnable {
     @Getter
     private ApplicationComponent applicationComponent;
 
+    private static Application app;
+    public static Application getRunningApp() {
+        return app;
+    }
+
+
     public Application() {
+        if(app != null) {
+            throw new RuntimeException("Can't instantiate second application");
+        }
+
+        app = this;
+
         applicationComponent = DaggerApplicationComponent.builder()
                 .applicationModule(new ApplicationModule(this))
                 .build();

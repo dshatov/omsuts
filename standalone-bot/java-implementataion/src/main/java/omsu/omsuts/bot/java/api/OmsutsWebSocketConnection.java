@@ -22,14 +22,14 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
 
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
-        log.info("Connected.");
         if (socket != null) {
             log.error("Socket is already opened");
             return;
         }
         socket = webSocket;
+        log.info("Connected.");
 
-        RequestHelper.login(socket, "qq", "ww");
+        MessageSender.login(socket, "qq", "ww");
     }
 
     @Override

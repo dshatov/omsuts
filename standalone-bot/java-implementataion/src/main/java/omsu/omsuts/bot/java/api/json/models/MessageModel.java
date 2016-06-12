@@ -8,10 +8,11 @@ import lombok.NoArgsConstructor;
  * Created by sds on 6/12/16.
  */
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequestModel {
-    private String username;
-    private String password;
+public class MessageModel {
+    private String messageType;
+    private String body;
 }

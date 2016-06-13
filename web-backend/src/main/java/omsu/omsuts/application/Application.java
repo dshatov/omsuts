@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.BotWebSocket;
 import omsu.omsuts.api.RouteHandler;
-import omsu.omsuts.application.service.RoundService;
+import omsu.omsuts.application.service.round.RoundService;
 import omsu.omsuts.db.entities.User;
 import spark.Session;
 import spark.TemplateEngine;
@@ -117,6 +117,9 @@ public class Application implements Runnable {
 
             Dao<User, String> userDAO = DaoManager.createDao(dbConnectionSource, User.class);
             userDAO.create(new User("qq", "ww", 0));
+            userDAO.create(new User("qqq", "www", 0));
+            userDAO.create(new User("aa", "ss", 0));
+            userDAO.create(new User("aaa", "sss", 0));
             userDAO.create(new User("dmitry", "1q2w3e4r", 1));
             userDAO.create(new User("user", "hardcoded", 23));
         } catch (SQLException e) {

@@ -13,6 +13,7 @@ import omsu.omsuts.bot.java.api.json.models.LoginStatusModel;
 import omsu.omsuts.bot.java.api.json.models.MessageModel;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 import static omsu.omsuts.bot.java.api.MessageSender.MESSAGE_TYPE_LOGIN_STATUS;
 
@@ -35,7 +36,13 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
         socket = webSocket;
         log.info("Socket is opened");
 
-        MessageSender.login(socket, "qq", "ww");
+        val in = new Scanner(System.in);
+        System.out.println("Username:");
+        val username = in.nextLine();
+        System.out.println("Password:");
+        val password = in.nextLine();
+
+        MessageSender.login(socket, username, password);
     }
 
     @Override

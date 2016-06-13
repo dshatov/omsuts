@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.BotWebSocket;
 import omsu.omsuts.application.service.BackgroundService;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.websocket.api.Session;
 import rx.Observable;
 
@@ -17,8 +18,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class RoundService extends BackgroundService {
-    private static final Map<Session, String> connectedBotsToUsernames = new ConcurrentHashMap<>();
-    private static final Map<String, Session> connectedUsernamesToBots = new ConcurrentHashMap<>();
+    private final Map<Session, String> connectedBotsToUsernames = new ConcurrentHashMap<>();
+    private final Map<String, Session> connectedUsernamesToBots = new ConcurrentHashMap<>();
+
+    private final Map<Session, Game> botsToGames = new ConcurrentHashMap<>();
+    private final Set<Game> runningGames = new ConcurrentHashSet<>();
 
     private BotWebSocket webSocket;
 
@@ -41,7 +45,13 @@ public class RoundService extends BackgroundService {
             val secondBot = readyBots.pollFirst();
             val firstName = connectedBotsToUsernames.get(firstBot);
             val secondName = connectedBotsToUsernames.get(secondBot);
-            log.info("Start game with {} and {}", firstName, secondName);
+//            log.info("Start game with {} and {}", firstName, secondName);
+
+            //create and start game for first and second bots
+            Game game = new GameImpl();
+            game.addBot(firstBot);
+            game.addBot(secondBot);
+            game.start();
         }
     }
 

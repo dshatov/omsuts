@@ -9,12 +9,16 @@ import okhttp3.ResponseBody;
 import okhttp3.ws.WebSocket;
 import okhttp3.ws.WebSocketListener;
 import okio.Buffer;
+import omsu.omsuts.bot.java.Player;
+import omsu.omsuts.bot.java.PlayerImpl;
+import omsu.omsuts.bot.java.api.json.models.GameStateModel;
 import omsu.omsuts.bot.java.api.json.models.LoginStatusModel;
 import omsu.omsuts.bot.java.api.json.models.MessageModel;
 
 import java.io.IOException;
 import java.util.Scanner;
 
+import static omsu.omsuts.bot.java.api.MessageSender.MESSAGE_TYPE_GAMESTATE;
 import static omsu.omsuts.bot.java.api.MessageSender.MESSAGE_TYPE_LOGIN_STATUS;
 
 /**
@@ -26,6 +30,8 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
 
     @Getter
     private WebSocket socket;
+
+    private Player player;
 
     @Override
     public void onOpen(WebSocket webSocket, Response response) {
@@ -94,6 +100,17 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
             }
             handleLoginStatus(loginStatusModel);
         }
+        else if (MESSAGE_TYPE_GAMESTATE.equals(messageModel.getMessageType())) {
+            GameStateModel gameStateModel;
+            try {
+                gameStateModel = objectMapper.readValue(messageModel.getBody(),
+                        GameStateModel.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            handleGameState(gameStateModel);
+        }
         else {
             log.error("Can't handle message with unknown type");
         }
@@ -106,6 +123,13 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
         else {
             System.out.println("Connection error: " + loginStatusModel.getReason());
         }
+    }
+
+    private void handleGameState(GameStateModel gameStateModel) {
+        if (gameStateModel.isFirst()) {
+            player = new PlayerImpl();
+        }
+        MessageSender.gameAction(socket, player.answer(gameStateModel));
     }
 
     public boolean isConnected() {

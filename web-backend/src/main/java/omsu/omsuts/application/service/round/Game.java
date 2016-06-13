@@ -1,6 +1,6 @@
 package omsu.omsuts.application.service.round;
 
-import lombok.extern.slf4j.Slf4j;
+import omsu.omsuts.api.bots.json.models.GameActionModel;
 import org.eclipse.jetty.websocket.api.Session;
 
 /**
@@ -11,5 +11,5 @@ public interface Game {
     void addBot(Session session);
     void start();
 
-    void handleGameActionMessage(Session bot, String jsonMessage);
+    void handleGameAction(Session bot, GameActionModel gameActionModel);
 }

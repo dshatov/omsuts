@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.bots.json.models.GameStateModel;
 import omsu.omsuts.api.bots.json.models.LoginRequestModel;
 import omsu.omsuts.api.bots.json.models.LoginStatusModel;
 import omsu.omsuts.api.bots.json.models.MessageModel;
@@ -12,6 +13,7 @@ import org.eclipse.jetty.websocket.api.Session;
 
 import java.io.IOException;
 
+import static omsu.omsuts.api.bots.MessageHandler.MESSAGE_TYPE_GAMESTATE;
 import static omsu.omsuts.api.bots.MessageHandler.MESSAGE_TYPE_LOGIN;
 import static omsu.omsuts.api.bots.MessageHandler.MESSAGE_TYPE_LOGIN_STATUS;
 import static omsu.omsuts.api.json.Utils.getJsonString;
@@ -48,5 +50,13 @@ public class MessageSender {
         val loginStatusModel = new LoginStatusModel(success, reason);
         sendJson(session, new MessageModel(MESSAGE_TYPE_LOGIN_STATUS,
                 getJsonString(loginStatusModel)));
+    }
+
+    public static void sendGameState(Session session,
+                                     Integer lastAnswer, boolean warmer, boolean first) {
+        log.info("Send gamestate...");
+        val gameStateModel = new GameStateModel(lastAnswer, warmer, first);
+        sendJson(session, new MessageModel(MESSAGE_TYPE_GAMESTATE,
+                getJsonString(gameStateModel)));
     }
 }

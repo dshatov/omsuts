@@ -7,6 +7,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.bots.json.models.GameActionModel;
 import omsu.omsuts.api.bots.json.models.LoginRequestModel;
 import omsu.omsuts.api.bots.json.models.MessageModel;
 import omsu.omsuts.db.entities.User;
@@ -34,6 +35,8 @@ public class MessageHandler {
 
     public static final String MESSAGE_TYPE_LOGIN = "login";
     public static final String MESSAGE_TYPE_LOGIN_STATUS = "loginStatus";
+    public static final String MESSAGE_TYPE_GAMESTATE = "gamestate";
+    public static final String MESSAGE_TYPE_GAMEACTION = "gameaction";
 
     public void updateSession(Session session) {
         if(!session.isOpen()) {
@@ -74,6 +77,17 @@ public class MessageHandler {
             }
             handleLoginRequest(session, loginRequestModel);
         }
+        else if (MESSAGE_TYPE_GAMEACTION.equals(messageModel.getMessageType())) {
+            GameActionModel gameActionModel;
+            try {
+                gameActionModel = objectMapper.readValue(messageModel.getBody(),
+                        GameActionModel.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            handleGameAction(session, gameActionModel);
+        }
         else {
             log.error("Can't handle message with unknown type");
         }
@@ -108,6 +122,12 @@ public class MessageHandler {
         roundService.addBot(session, loginRequestModel.getUsername());
         log.info("Bot successfully connected; username: '{}'", loginRequestModel.getUsername());
         MessageSender.sendloginStatus(session, true, "");
+    }
+
+    public void handleGameAction(Session session, GameActionModel gameActionModel) {
+        //////
+        val roundService = Application.getRunningApp().getRoundService();
+        roundService.sendGameActionToGame(session, gameActionModel);
     }
 
 }

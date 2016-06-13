@@ -3,6 +3,7 @@ package omsu.omsuts.application.service.round;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.BotWebSocket;
+import omsu.omsuts.api.bots.json.models.GameActionModel;
 import omsu.omsuts.application.service.BackgroundService;
 import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.eclipse.jetty.websocket.api.Session;
@@ -22,7 +23,6 @@ public class RoundService extends BackgroundService {
     private final Map<String, Session> connectedUsernamesToBots = new ConcurrentHashMap<>();
 
     private final Map<Session, Game> botsToGames = new ConcurrentHashMap<>();
-    private final Set<Game> runningGames = new ConcurrentHashSet<>();
 
     private BotWebSocket webSocket;
 
@@ -37,20 +37,24 @@ public class RoundService extends BackgroundService {
     }
 
     private void startRound(long number) {
+        //Clear old games
+        botsToGames.clear();
+
         log.info("Round {} is started", number);
         val readyBots = new LinkedList<Session>(connectedBotsToUsernames.keySet());
         Collections.shuffle(readyBots);
         while (readyBots.size() >= 2) {
             val firstBot = readyBots.pollFirst();
             val secondBot = readyBots.pollFirst();
-            val firstName = connectedBotsToUsernames.get(firstBot);
-            val secondName = connectedBotsToUsernames.get(secondBot);
-//            log.info("Start game with {} and {}", firstName, secondName);
 
             //create and start game for first and second bots
             Game game = new GameImpl();
             game.addBot(firstBot);
             game.addBot(secondBot);
+
+            botsToGames.put(firstBot, game);
+            botsToGames.put(secondBot, game);
+
             game.start();
         }
     }
@@ -75,6 +79,13 @@ public class RoundService extends BackgroundService {
     public void addBot(Session session, String username) {
         connectedUsernamesToBots.put(username, session);
         connectedBotsToUsernames.put(session, username);
+    }
+
+    public void sendGameActionToGame(Session session, GameActionModel gameActionModel) {
+        val game = botsToGames.getOrDefault(session, null);
+        if (game != null) {
+            game.handleGameAction(session, gameActionModel);
+        }
     }
 
     public boolean hasSession(Session session) {

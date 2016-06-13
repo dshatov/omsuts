@@ -3,6 +3,8 @@ package omsu.omsuts.application.service.round;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import omsu.omsuts.api.bots.MessageSender;
+import omsu.omsuts.api.bots.json.models.GameActionModel;
 import omsu.omsuts.application.Application;
 import org.eclipse.jetty.websocket.api.Session;
 
@@ -20,6 +22,7 @@ public class GameImpl implements Game {
     private Integer secret;
     private Integer firstBotAnswer;
     private Integer secondBotAnswer;
+    private Session lastAnsweredBot;
 
     @Getter
     private boolean started = false;
@@ -52,20 +55,19 @@ public class GameImpl implements Game {
         started = true;
 
         secret = Math.round(10f * (float)Math.random());
+
+        MessageSender.sendGameState(firstBot, null, false, true);
+
     }
 
     @Override
-    public void handleGameActionMessage(Session bot, String jsonMessage) {
+    public void handleGameAction(Session bot, GameActionModel gameActionModel) {
         val roundManager = Application.getRunningApp().getRoundService();
         val senderName = roundManager.getUsername(bot);
         if (!firstName.equals(senderName) && !secondName.equals(senderName)) {
             log.error("sender isn't player at this game");
             return;
         }
-        log.info("Action message got from '{}': '{}'", senderName, jsonMessage);
-    }
-
-    private void sendGameState(Session session) {
-        
+        log.info("Action message got from '{}': {}", senderName, gameActionModel.toString());
     }
 }

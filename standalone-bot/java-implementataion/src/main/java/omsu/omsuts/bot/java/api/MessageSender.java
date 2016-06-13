@@ -6,6 +6,7 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ws.WebSocket;
 import okio.BufferedSink;
+import omsu.omsuts.bot.java.api.json.models.GameActionModel;
 import omsu.omsuts.bot.java.api.json.models.LoginRequestModel;
 import omsu.omsuts.bot.java.api.json.models.MessageModel;
 
@@ -21,6 +22,8 @@ import static omsu.omsuts.bot.java.api.json.Utils.getJsonString;
 public class MessageSender {
     public static final String MESSAGE_TYPE_LOGIN = "login";
     public static final String MESSAGE_TYPE_LOGIN_STATUS = "loginStatus";
+    public static final String MESSAGE_TYPE_GAMESTATE = "gamestate";
+    public static final String MESSAGE_TYPE_GAMEACTION = "gameaction";
 
     private static void sendJson(WebSocket socket, Object jsonModel) {
         if (socket == null) {
@@ -56,5 +59,11 @@ public class MessageSender {
         val loginRequestModel = new LoginRequestModel(username, password);
         sendJson(socket, new MessageModel(MESSAGE_TYPE_LOGIN,
                 getJsonString(loginRequestModel)));
+    }
+
+    public static void gameAction(WebSocket socket, GameActionModel gameActionModel) {
+        log.info("Send game action...");
+        sendJson(socket, new MessageModel(MESSAGE_TYPE_GAMEACTION,
+                getJsonString(gameActionModel)));
     }
 }

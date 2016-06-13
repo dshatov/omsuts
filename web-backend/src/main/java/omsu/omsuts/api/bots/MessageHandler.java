@@ -16,8 +16,6 @@ import org.eclipse.jetty.websocket.api.Session;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by sds on 6/12/16.
@@ -25,19 +23,13 @@ import java.util.Map;
 
 @Slf4j
 public class MessageHandler {
-    private static final Map<Session, String> connectedBotsToUsernames = new HashMap<>();
-    private static final Map<String, Session> connectedUsernamesToBots = new HashMap<>();
-
-
     @Inject public ConnectionSource dbConnectionSource;
-
-    private BotWebSocket webSocket;
 
     public MessageHandler(BotWebSocket webSocket) {
         Application.getRunningApp().getApplicationComponent()
                 .inject(this);
 
-        this.webSocket = webSocket;
+        Application.getRunningApp().getRoundService().setWebSocket(webSocket);
     }
 
     public static final String MESSAGE_TYPE_LOGIN = "login";
@@ -45,10 +37,11 @@ public class MessageHandler {
 
     public void updateSession(Session session) {
         if(!session.isOpen()) {
-            val username = connectedBotsToUsernames.getOrDefault(session, null);
+            val roundService = Application.getRunningApp().getRoundService();
+
+            val username = roundService.getUsername(session);
             if (username != null) {
-                connectedBotsToUsernames.remove(session);
-                connectedUsernamesToBots.remove(username);
+                roundService.removeBot(session, username);
             }
         }
     }
@@ -92,12 +85,13 @@ public class MessageHandler {
                 loginRequestModel.getUsername(),
                 loginRequestModel.getPassword());
 
-        if(connectedBotsToUsernames.containsKey(session)) {
+        val roundService = Application.getRunningApp().getRoundService();
+        if(roundService.hasSession(session)) {
             MessageSender.sendloginStatus(session, false, "bot already authorized");
             return;
         }
 
-        if(connectedUsernamesToBots.containsKey(loginRequestModel.getUsername())) {
+        if(roundService.hasUsername(loginRequestModel.getUsername())) {
             MessageSender.sendloginStatus(session, false, "user already attach other bot");
             //session.close(4007, "user already attach other bot");
             return;
@@ -111,8 +105,7 @@ public class MessageHandler {
             return;
         }
 
-        connectedUsernamesToBots.put(loginRequestModel.getUsername(), session);
-        connectedBotsToUsernames.put(session, loginRequestModel.getUsername());
+        roundService.addBot(session, loginRequestModel.getUsername());
         log.info("Bot successfully connected; username: '{}'", loginRequestModel.getUsername());
         MessageSender.sendloginStatus(session, true, "");
     }

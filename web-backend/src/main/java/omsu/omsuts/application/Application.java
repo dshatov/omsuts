@@ -11,8 +11,6 @@ import omsu.omsuts.api.bots.BotWebSocket;
 import omsu.omsuts.api.RouteHandler;
 import omsu.omsuts.application.service.RoundService;
 import omsu.omsuts.db.entities.User;
-import rx.Observable;
-import rx.Subscription;
 import spark.Session;
 import spark.TemplateEngine;
 
@@ -20,7 +18,6 @@ import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 
 import static spark.Spark.*;
 import static spark.Spark.get;
@@ -47,6 +44,8 @@ public class Application implements Runnable {
         return app;
     }
 
+    @Getter
+    private RoundService roundService;
 
     public Application() {
         if(app != null) {
@@ -62,6 +61,8 @@ public class Application implements Runnable {
         applicationComponent.inject(this);
 
         routeHandler = new RouteHandler(this);
+
+        roundService = new RoundService();
     }
 
     private void setupStaticFiles() {
@@ -137,15 +138,14 @@ public class Application implements Runnable {
         init();
         awaitInitialization();
 
-        RoundService service = new RoundService();
         log.info("running service...");
-        service.run();
+        roundService.run();
         try {
-            Thread.sleep(10000);
+            Thread.sleep(5 * 60 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        service.stop();
+        roundService.stop();
         log.info("service is stopped");
 
 //        val in = new Scanner(System.in);

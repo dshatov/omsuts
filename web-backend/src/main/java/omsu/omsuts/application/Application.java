@@ -4,15 +4,15 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import lombok.Cleanup;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.BotWebSocket;
 import omsu.omsuts.api.RouteHandler;
-import omsu.omsuts.api.bots.MessageHandler;
-import omsu.omsuts.api.db.entities.User;
+import omsu.omsuts.application.service.RoundService;
+import omsu.omsuts.db.entities.User;
+import rx.Observable;
+import rx.Subscription;
 import spark.Session;
 import spark.TemplateEngine;
 
@@ -20,7 +20,7 @@ import javax.inject.Inject;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import static spark.Spark.*;
 import static spark.Spark.get;
@@ -136,6 +136,17 @@ public class Application implements Runnable {
         setupRoutes();
         init();
         awaitInitialization();
+
+        RoundService service = new RoundService();
+        log.info("running service...");
+        service.run();
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        service.stop();
+        log.info("service is stopped");
 
 //        val in = new Scanner(System.in);
 //        do{

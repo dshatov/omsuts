@@ -7,7 +7,7 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import omsu.omsuts.api.db.entities.User;
+import omsu.omsuts.db.entities.User;
 import omsu.omsuts.api.json.models.CredentialsModel;
 import omsu.omsuts.application.Application;
 import spark.ModelAndView;

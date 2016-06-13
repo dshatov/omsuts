@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.json.models.LoginRequestModel;
 import omsu.omsuts.api.bots.json.models.MessageModel;
-import omsu.omsuts.api.db.entities.User;
+import omsu.omsuts.db.entities.User;
 import omsu.omsuts.application.Application;
 import org.eclipse.jetty.websocket.api.Session;
 

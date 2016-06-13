@@ -124,9 +124,9 @@ public class Application implements Runnable {
     }
 
     @Override
-    @SneakyThrows(SQLException.class)
+    //@SneakyThrows(SQLException.class)
     public void run() {
-        @SuppressWarnings("unused") @Cleanup val connection = dbConnectionSource;
+        //@SuppressWarnings("unused") @Cleanup val connection = dbConnectionSource;
 
         setupDB();
         setupSSL();
@@ -135,19 +135,18 @@ public class Application implements Runnable {
         setupStaticFiles();
         setupRoutes();
         init();
+        awaitInitialization();
 
-        val in = new Scanner(System.in);
-        do{
-            System.out.println("Command:");
-            val cmd = in.nextLine();
-            if ("exit".equals(cmd)) {
-                break;
-            }
-            log.error("Invalid command: '{}'", cmd);
-        } while (true);
+//        val in = new Scanner(System.in);
+//        do{
+//            System.out.println("Command:");
+//            val cmd = in.nextLine();
+//            if ("exit".equals(cmd)) {
+//                break;
+//            }
+//            log.error("Invalid command: '{}'", cmd);
+//        } while (true);
 
-
-
-        stop();
+//        stop();
     }
 }

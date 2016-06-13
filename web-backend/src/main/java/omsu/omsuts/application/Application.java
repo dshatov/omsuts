@@ -120,8 +120,8 @@ public class Application implements Runnable {
             userDAO.create(new User("qqq", "www", 0));
             userDAO.create(new User("aa", "ss", 0));
             userDAO.create(new User("aaa", "sss", 0));
-            userDAO.create(new User("dmitry", "1q2w3e4r", 1));
-            userDAO.create(new User("user", "hardcoded", 23));
+            userDAO.create(new User("dmitry", "1q2w3e4r", 0));
+            userDAO.create(new User("user", "hardcoded", 0));
         } catch (SQLException e) {
             e.printStackTrace();
         }

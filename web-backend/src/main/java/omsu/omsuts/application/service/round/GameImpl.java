@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.MessageSender;
 import omsu.omsuts.api.bots.json.models.GameActionModel;
+import omsu.omsuts.api.bots.json.models.GameStateModel;
 import omsu.omsuts.application.Application;
 import org.eclipse.jetty.websocket.api.Session;
+
+import static java.lang.Math.abs;
 
 /**
  * Created by sds on 6/13/16.
@@ -20,8 +23,7 @@ public class GameImpl implements Game {
     private String secondName;
 
     private Integer secret;
-    private Integer firstBotAnswer;
-    private Integer secondBotAnswer;
+    private Integer lastAnswer;
     private Session lastAnsweredBot;
 
     @Getter
@@ -56,18 +58,43 @@ public class GameImpl implements Game {
 
         secret = Math.round(10f * (float)Math.random());
 
+        lastAnsweredBot = secondBot;
         MessageSender.sendGameState(firstBot, null, false, true);
-
     }
 
     @Override
     public void handleGameAction(Session bot, GameActionModel gameActionModel) {
+        if (!started) {
+            log.error("can't handle action: game isn't started");
+            return;
+        }
+
         val roundManager = Application.getRunningApp().getRoundService();
         val senderName = roundManager.getUsername(bot);
         if (!firstName.equals(senderName) && !secondName.equals(senderName)) {
             log.error("sender isn't player at this game");
             return;
         }
-        log.info("Action message got from '{}': {}", senderName, gameActionModel.toString());
+        if (bot.equals(lastAnsweredBot)) {
+            log.warn("action is rejected: sender should wait his turn");
+            return;
+        }
+
+        val answer = gameActionModel.getAnswer();
+
+        if (secret.equals(answer)) {
+            log.info("'{}' is winner!", senderName);
+            roundManager.givePointsToUser(senderName, 1);
+            return;
+        }
+
+        val otherBot = firstName.equals(senderName)
+                ? secondBot
+                : firstBot;
+
+        val warmer = lastAnswer == null || abs(answer - secret) < abs(lastAnswer - secret);
+        lastAnswer = answer;
+        lastAnsweredBot = bot;
+        MessageSender.sendGameState(otherBot, answer, warmer, false);
     }
 }

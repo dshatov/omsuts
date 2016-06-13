@@ -1,14 +1,22 @@
 package omsu.omsuts.application.service.round;
 
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.support.ConnectionSource;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import omsu.omsuts.api.bots.BotWebSocket;
+import omsu.omsuts.api.bots.MessageSender;
 import omsu.omsuts.api.bots.json.models.GameActionModel;
+import omsu.omsuts.application.Application;
 import omsu.omsuts.application.service.BackgroundService;
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import omsu.omsuts.db.entities.User;
 import org.eclipse.jetty.websocket.api.Session;
 import rx.Observable;
 
+import javax.inject.Inject;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -26,14 +34,31 @@ public class RoundService extends BackgroundService {
 
     private BotWebSocket webSocket;
 
+    @Inject public ConnectionSource dbConnectionSource;
+
+    public RoundService() {
+        Application.getRunningApp().getApplicationComponent()
+                .inject(this);
+    }
+
     @Override
     public void run() {
-        val timer = Observable.interval(2, 1, TimeUnit.SECONDS);
+        val timer = Observable.interval(30, 10, TimeUnit.SECONDS);
         addSubscription(timer.subscribe(
                 this::startRound,
                 e -> log.error("Timer error:", e),
                 () -> log.info("Timer service completed")
         ));
+    }
+
+    @SneakyThrows(SQLException.class)
+    public void givePointsToUser(String username, int points) {
+        Dao<User, String> userDao = DaoManager.createDao(dbConnectionSource, User.class);
+        val user = userDao.queryForId(username);
+        if (user != null ) {
+            user.setScore(user.getScore() + points);
+            userDao.update(user);
+        }
     }
 
     private void startRound(long number) {

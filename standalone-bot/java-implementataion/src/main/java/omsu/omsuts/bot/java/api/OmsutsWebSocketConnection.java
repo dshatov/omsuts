@@ -126,7 +126,7 @@ public class OmsutsWebSocketConnection implements WebSocketListener {
     }
 
     private void handleGameState(GameStateModel gameStateModel) {
-        if (gameStateModel.isFirst()) {
+        if (gameStateModel.isFirst() || player == null) {
             player = new PlayerImpl();
         }
         MessageSender.gameAction(socket, player.answer(gameStateModel));

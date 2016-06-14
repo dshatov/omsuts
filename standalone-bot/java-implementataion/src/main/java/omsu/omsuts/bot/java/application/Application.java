@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.ws.WebSocketCall;
-import okhttp3.ws.WebSocketListener;
 import omsu.omsuts.bot.java.api.OmsutsWebSocketConnection;
 
 import javax.inject.Inject;

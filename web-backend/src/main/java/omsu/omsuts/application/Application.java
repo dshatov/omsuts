@@ -144,7 +144,7 @@ public class Application implements Runnable {
         log.info("running service...");
         roundService.run();
         try {
-            Thread.sleep(5 * 60 * 1000);
+            Thread.sleep(20 * 60 * 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
